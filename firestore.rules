@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidLead(data) {
+      return data.keys().hasAll(['email', 'source', 'createdAt']) && 
+             data.keys().size() <= 10 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.source is string && data.source.size() <= 100 &&
+             (!('name' in data) || (data.name is string && data.name.size() <= 100)) &&
+             (!('interests' in data) || (data.interests is string && data.interests.size() <= 1000)) &&
+             data.createdAt == request.time;
+    }
+
+    function isValidChatSession(data) {
+      return data.keys().hasAll(['userId', 'messages', 'updatedAt']) &&
+             data.keys().size() <= 10 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.messages is list && data.messages.size() <= 1000 &&
+             data.updatedAt == request.time;
+    }
+
+    // --- Collections ---
+
+    // Connection test path
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Leads: Public can create (anonymous OK)
+    match /leads/{leadId} {
+      allow create: if isValidId(leadId) && isValidLead(incoming());
+    }
+
+    // Support Chats: Users can access their own session. 
+    // We allow anonymous users to access sessions mapped to their session IDs.
+    match /support_chats/{chatId} {
+      allow get: if isValidId(chatId) && isSignedIn();
+      allow create: if isValidId(chatId) && isSignedIn() && isValidChatSession(incoming());
+      allow update: if isValidId(chatId) && isSignedIn() &&
+                      isValidChatSession(incoming()) &&
+                      incoming().userId == existing().userId &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['messages', 'updatedAt']);
+    }
+  }
+}

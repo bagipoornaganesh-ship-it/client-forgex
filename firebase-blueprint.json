@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "Lead": {
+      "title": "Lead",
+      "description": "Information captured from potential clients.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User email address."
+        },
+        "source": {
+          "type": "string",
+          "description": "Where the lead was captured (e.g., 'chat', 'contact_form')."
+        },
+        "interests": {
+          "type": "string",
+          "description": "User interests or project intent."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the lead was created."
+        }
+      },
+      "required": ["email", "createdAt", "source"]
+    },
+    "ChatSession": {
+      "title": "Chat Session",
+      "description": "Support chat history for a user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique identifier for the user session."
+        },
+        "messages": {
+          "type": "array",
+          "description": "List of message objects."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last activity in the chat."
+        }
+      },
+      "required": ["userId", "messages", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Collection of captured leads."
+    },
+    "/support_chats/{chatId}": {
+      "schema": "ChatSession",
+      "description": "Collection of support chat sessions."
+    }
+  }
+}
