@@ -576,6 +576,9 @@ export default function App() {
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [buyerEmail, setBuyerEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -623,12 +626,35 @@ export default function App() {
       element?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
+    setShowEmailModal(true);
+  };
+
+  const handleEmailSubmit = async () => {
+    if (!buyerEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setEmailError('Enter a valid email address.');
+      return;
+    }
+    setEmailError('');
+    // Save email to Firebase leads
+    try {
+      await waitForAuth();
+      const leadId = 'lead_' + Math.random().toString(36).substring(2, 11);
+      await setDoc(doc(db, 'leads', leadId), {
+        email: buyerEmail,
+        source: 'purchase_flow',
+        createdAt: serverTimestamp()
+      });
+    } catch (e) {
+      console.error('Lead save error:', e);
+    }
+    // Open PayPal
     const businessEmail = 'raufacts777@gmail.com';
     const itemName = 'Land Your First Video Editing Client in 7 Days (20 DM System)';
     const amount = '9.00';
     const currency = 'USD';
     const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(businessEmail)}&item_name=${encodeURIComponent(itemName)}&amount=${amount}&currency_code=${currency}&no_shipping=1&no_note=1`;
     window.open(paypalUrl, '_blank');
+    setShowEmailModal(false);
     setShowPaymentModal(true);
   };
 
@@ -1400,6 +1426,64 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Email Collection Modal */}
+      <AnimatePresence>
+        {showEmailModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8"
+          >
+            <div onClick={() => setShowEmailModal(false)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg glass-card rounded-[2rem] sm:rounded-[4rem] border-[#F27D26]/30 overflow-hidden flex flex-col p-8 sm:p-16 text-center shadow-[0_50px_100px_-20px_rgba(242,125,38,0.4)]"
+            >
+              <button onClick={() => setShowEmailModal(false)} className="absolute top-6 right-6 p-3 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-all">
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-20 h-20 bg-[#F27D26]/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-[#F27D26]/30">
+                <Zap className="w-10 h-10 text-[#F27D26]" />
+              </div>
+
+              <div className="text-[10px] font-mono text-[#F27D26] uppercase tracking-[0.4em] mb-3">ALMOST THERE</div>
+              <h3 className="text-2xl sm:text-4xl font-display font-black text-white uppercase italic mb-4 tracking-tight">Enter Your Email</h3>
+              <p className="text-white/40 text-sm font-light leading-relaxed mb-10">
+                We'll send your access details here after payment. Use an email you check regularly.
+              </p>
+
+              <div className="space-y-4 text-left">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-mono uppercase text-white/20 ml-2 tracking-[0.2em]">YOUR EMAIL</label>
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={buyerEmail}
+                    onChange={(e) => { setBuyerEmail(e.target.value); setEmailError(''); }}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#F27D26] outline-none transition-all font-mono placeholder:text-white/20 text-sm"
+                  />
+                  {emailError && <p className="text-red-400 text-[10px] font-mono ml-2">{emailError}</p>}
+                </div>
+
+                <button
+                  onClick={handleEmailSubmit}
+                  className="w-full py-5 bg-[#F27D26] text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-[#FF4D00] transition-all shadow-2xl flex items-center justify-center gap-3"
+                >
+                  PROCEED TO PAYMENT <ArrowRight className="w-5 h-5" />
+                </button>
+                <p className="text-[9px] font-mono text-white/20 uppercase tracking-widest text-center">
+                  🔒 No spam. Access details only.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Payment Initiated Modal */}
       <AnimatePresence>
