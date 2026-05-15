@@ -1432,22 +1432,14 @@ export default function App() {
               </p>
 
               <div className="bg-[#F27D26]/10 border border-[#F27D26]/30 rounded-[1.5rem] p-6 mb-6 text-left space-y-4">
-                <div className="text-[9px] font-mono text-[#F27D26] uppercase tracking-widest">YOUR ACCESS LINK</div>
-                <div className="font-mono text-white text-sm break-all bg-black/40 rounded-xl px-4 py-3 border border-white/10">
-                  https://client-forgex.vercel.app
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText('https://client-forgex.vercel.app');
-                  }}
-                  className="w-full py-4 bg-[#F27D26] text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-[#FF4D00] transition-all flex items-center justify-center gap-2"
-                >
-                  <FileText className="w-4 h-4" /> COPY ACCESS LINK
-                </button>
+                <div className="text-[9px] font-mono text-[#F27D26] uppercase tracking-widest">📧 ACCESS DELIVERY</div>
+                <p className="text-white/60 text-sm font-light leading-relaxed">
+                  Your access details will be sent to your <span className="text-white font-bold">PayPal email</span> within 5 minutes of payment confirmation.
+                </p>
               </div>
 
               <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
-                📌 Bookmark this link. This is your lifetime access to the system.
+                ⚡ Check your inbox + spam folder after payment.
               </p>
             </motion.div>
           </motion.div>
@@ -1547,4 +1539,3 @@ export default function App() {
     </div>
   );
 }
-
